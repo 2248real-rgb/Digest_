@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Digest</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #1a1a1a;
+  --border: #222222;
+  --text: #f5f5f5;
+  --muted: #777777;
+  --accent: #cb6ce6;
+  --accent-dim: rgba(203,108,230,0.12);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  min-height: 100vh;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,10,0.96);
+  backdrop-filter: blur(12px);
+}
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+.back-arrow {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: 'Lora', serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.back-arrow:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.back-arrow svg {
+  width: 14px; height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nav-time {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'Lora', serif;
+}
+
+/* ALIGN TOGGLE */
+.align-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.align-toggle:hover { border-color: var(--accent); }
+.align-toggle-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Lora', serif;
+}
+.align-toggle-icons {
+  display: flex;
+  gap: 4px;
+}
+.align-icon {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 11px;
+}
+.align-icon.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.align-icon:not(.active) { color: #444; }
+
+/* LANDING */
+#landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 24px 60px;
+}
+.landing-inner {
+  width: 100%;
+  max-width: 600px;
+}
+.hero-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.hero-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.75;
+  margin-bottom: 44px;
+  max-width: 480px;
+}
+
+/* INPUT CARD */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 1; padding: 13px 0;
+  text-align: center; font-size: 13px;
+  color: var(--muted); cursor: pointer;
+  border: none; background: none;
+  font-family: 'Lora', serif;
+  transition: color 0.2s; position: relative;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); }
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 2px; background: var(--accent);
+}
+.tab-content { padding: 20px; display: none; }
+.tab-content.active { display: block; }
+
+.field-label {
+  font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 8px;
+}
+.url-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px 14px;
+  color: var(--text);
+  font-family: 'Lora', serif;
+  font-size: 15px; outline: none;
+  transition: border-color 0.2s;
+}
+.url-input:focus { border-color: var(--accent); }
+.url-input::placeholder { color: #3a3a3a; }
+.hint {
+  font-size: 12px; color: #3d3d3d;
+  margin-top: 8px; font-style: italic;
+}
+
+/* PDF */
+.pdf-zone {
+  border: 2px dashed #2a2a2a;
+  border-radius: 8px; padding: 36px 20px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.pdf-zone:hover, .pdf-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.pdf-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+.pdf-zone-icon { font-size: 28px; margin-bottom: 10px; }
+.pdf-zone-text { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.pdf-zone-text strong { color: var(--text); display: block; margin-bottom: 3px; }
+.pdf-loaded {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.pdf-loaded-info { flex: 1; }
+.pdf-loaded-name { font-size: 14px; font-weight: 500; }
+.pdf-loaded-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.pdf-remove {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); padding: 5px 10px;
+  border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-family: 'Lora', serif;
+  transition: all 0.2s;
+}
+.pdf-remove:hover { color: var(--text); border-color: #555; }
+.pdf-note {
+  font-size: 12px; color: #3d3d3d;
+  margin-top: 10px; font-style: italic;
+  line-height: 1.5;
+}
+
+/* ERROR */
+.error-msg {
+  margin-top: 10px; padding: 11px 13px;
+  background: rgba(220,60,60,0.08);
+  border: 1px solid rgba(220,60,60,0.25);
+  border-radius: 7px; color: #ff7070;
+  font-size: 13px; display: none; line-height: 1.5;
+}
+
+/* BUTTON */
+.digest-btn {
+  width: 100%; margin-top: 14px; padding: 15px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 8px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px; cursor: pointer;
+  transition: all 0.2s;
+}
+.digest-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.digest-btn:active { transform: translateY(0); }
+.digest-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* LOADING */
+#loading {
+  display: none; min-height: 100vh;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 20px;
+}
+.loading-dots { display: flex; gap: 7px; }
+.dot {
+  width: 9px; height: 9px;
+  background: var(--accent); border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%,80%,100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.loading-text { color: var(--muted); font-size: 15px; font-style: italic; }
+
+/* ARTICLE */
+#article { display: none; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.article-wrap {
+  max-width: 728px;
+  margin: 0 auto;
+  padding: 100px 24px 80px;
+}
+
+/* pub header */
+.pub-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 28px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.pub-avatar {
+  width: 34px; height: 34px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(203,108,230,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px; color: var(--accent); flex-shrink: 0;
+}
+.pub-info { flex: 1; }
+.pub-name { font-family: 'DM Serif Display', serif; font-size: 14px; color: var(--text); }
+.pub-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.pub-subscribe {
+  margin-left: auto; background: none;
+  border: 1px solid var(--border);
+  color: var(--muted); padding: 5px 14px;
+  border-radius: 20px; font-size: 12px;
+  font-family: 'Lora', serif; cursor: default;
+}
+
+/* article head */
+.article-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.15; letter-spacing: -0.02em;
+  margin-bottom: 12px; color: var(--text);
+}
+.article-subtitle {
+  font-size: 18px; color: #999;
+  line-height: 1.6; margin-bottom: 20px;
+  font-style: italic; display: none;
+}
+.article-meta-row {
+  display: flex; align-items: center;
+  gap: 10px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.meta-dot { color: #333; }
+.art-source {
+  font-size: 13px; color: var(--accent); text-decoration: none;
+}
+.art-source:hover { text-decoration: underline; }
+.art-time { font-size: 13px; color: var(--muted); }
+
+/* action row */
+.action-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px; flex-wrap: wrap;
+}
+.action-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); padding: 6px 14px;
+  border-radius: 20px; font-size: 12px;
+  font-family: 'Lora', serif; cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.action-btn.active-state { border-color: var(--accent); color: var(--accent); }
+
+/* BODY — alignment toggled via class */
+.article-body {
+  font-size: 18px;
+  line-height: 1.9;
+  color: #d0d0d0;
+}
+
+/* left align (default) */
+.article-body.align-left {
+  text-align: left;
+}
+
+/* center align — mirrors Substack centered layout */
+.article-body.align-center {
+  text-align: left; /* text itself stays left for readability */
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.article-body p { margin-bottom: 26px; }
+.article-body h1, .article-body h2,
+.article-body h3, .article-body h4 {
+  font-family: 'DM Serif Display', serif;
+  color: var(--text); margin: 40px 0 14px;
+  line-height: 1.2; letter-spacing: -0.02em;
+}
+.article-body h1 { font-size: 30px; }
+.article-body h2 { font-size: 24px; }
+.article-body h3 { font-size: 20px; }
+.article-body h4 { font-size: 17px; color: #aaa; }
+.article-body blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 32px 0; padding: 2px 0 2px 22px;
+  font-style: italic; color: #bbb; font-size: 19px;
+}
+.article-body a { color: var(--accent); text-decoration: none; }
+.article-body a:hover { text-decoration: underline; }
+.article-body img {
+  max-width: 100%; border-radius: 8px;
+  margin: 28px 0; display: block;
+}
+.article-body ul, .article-body ol {
+  margin: 0 0 26px 22px; line-height: 1.9;
+}
+.article-body li { margin-bottom: 6px; }
+.article-body strong { color: var(--text); font-weight: 600; }
+.article-body hr {
+  border: none; border-top: 1px solid var(--border); margin: 36px 0;
+}
+.article-body pre {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; overflow-x: auto;
+  margin-bottom: 26px; font-size: 14px; line-height: 1.6;
+}
+.article-body code {
+  background: var(--surface2); padding: 2px 6px;
+  border-radius: 4px; font-size: 14px;
+}
+
+/* footer */
+.article-footer {
+  margin-top: 56px; padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.back-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); padding: 9px 18px;
+  border-radius: 20px; font-family: 'Lora', serif;
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 600px) {
+  nav { padding: 16px 20px; }
+  .align-toggle-label { display: none; }
+  .article-wrap { padding: 90px 20px 60px; }
+  .article-body { font-size: 16px; }
+  .hero-title { font-size: 34px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-left">
+    <button class="back-arrow" id="back-arrow" onclick="reset()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+    <span class="logo" onclick="reset()">Digest</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-time" id="nav-time"></span>
+    <div class="align-toggle" id="align-toggle" onclick="toggleAlign()" style="display:none" title="Toggle text alignment">
+      <span class="align-toggle-label">Align</span>
+      <div class="align-toggle-icons">
+        <div class="align-icon active" id="icon-left" title="Left">≡</div>
+        <div class="align-icon" id="icon-center" title="Centered">⊟</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- LANDING -->
+<div id="landing">
+  <div class="landing-inner">
+    <p class="hero-label">Your reading companion</p>
+    <h1 class="hero-title">Read anything,<br><em>beautifully.</em></h1>
+    <p class="hero-sub">Paste a URL or upload a PDF. Digest strips the clutter and gives you a clean, focused reading experience.</p>
+
+    <div class="input-card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('url')">Paste a URL</button>
+        <button class="tab" onclick="switchTab('pdf')">Upload PDF</button>
+      </div>
+
+      <!-- URL TAB -->
+      <div class="tab-content active" id="tab-url">
+        <div class="field-label">Article URL</div>
+        <input class="url-input" type="url" id="url-input"
+          placeholder="https://example.com/article..."
+          onkeydown="if(event.key==='Enter') digest()" />
+        <p class="hint">Works with blogs, news sites, Substack, Wikipedia, research papers &amp; more</p>
+        <div class="error-msg" id="url-error"></div>
+      </div>
+
+      <!-- PDF TAB -->
+      <div class="tab-content" id="tab-pdf">
+        <div class="pdf-zone" id="pdf-zone">
+          <input type="file" accept=".pdf" id="pdf-input" onchange="handlePDF(this.files[0])" />
+          <div class="pdf-zone-icon">📄</div>
+          <div class="pdf-zone-text">
+            <strong>Drop your PDF here</strong>
+            or click to browse
+          </div>
+        </div>
+        <div class="pdf-loaded" id="pdf-loaded" style="display:none">
+          <span style="font-size:22px">📖</span>
+          <div class="pdf-loaded-info">
+            <div class="pdf-loaded-name" id="pdf-name"></div>
+            <div class="pdf-loaded-meta" id="pdf-meta"></div>
+          </div>
+          <button class="pdf-remove" onclick="removePDF()">Remove</button>
+        </div>
+        <p class="pdf-note">Works best with text-based PDFs — books, essays, research papers. Image-only PDFs won't extract well.</p>
+        <div class="error-msg" id="pdf-error"></div>
+      </div>
+
+      <div style="padding: 0 20px 20px">
+        <button class="digest-btn" onclick="digest()">Digest It →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <p class="loading-text" id="loading-text">Fetching article…</p>
+</div>
+
+<!-- ARTICLE -->
+<div id="article">
+  <div class="article-wrap">
+    <div class="pub-header">
+      <div class="pub-avatar" id="pub-avatar">D</div>
+      <div class="pub-info">
+        <div class="pub-name" id="pub-name">Digest</div>
+        <div class="pub-sub" id="pub-sub">Via Digest reader</div>
+      </div>
+      <button class="pub-subscribe">Subscribe</button>
+    </div>
+
+    <h1 class="article-title" id="art-title"></h1>
+    <p class="article-subtitle" id="art-subtitle"></p>
+
+    <div class="article-meta-row">
+      <a class="art-source" id="art-source" href="#" target="_blank"></a>
+      <span class="meta-dot" id="meta-dot">·</span>
+      <span class="art-time" id="art-time"></span>
+    </div>
+
+    <div class="action-row">
+      <button class="action-btn" onclick="copyMarkdown()" id="copy-btn">⎘ Copy Markdown</button>
+      <button class="action-btn" onclick="reset()">← New article</button>
+    </div>
+
+    <div class="article-body align-left" id="art-body"></div>
+
+    <div class="article-footer">
+      <button class="back-btn" onclick="reset()">← Read another</button>
+      <button class="action-btn" onclick="copyMarkdown()" id="copy-btn-2">⎘ Copy Markdown</button>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+let currentTab = 'url';
+let pdfText = '';
+let pdfFile = null;
+let alignMode = 'left'; // 'left' or 'center'
+
+// ALIGN TOGGLE
+function toggleAlign() {
+  alignMode = alignMode === 'left' ? 'center' : 'left';
+  const body = document.getElementById('art-body');
+  body.className = `article-body align-${alignMode}`;
+  document.getElementById('icon-left').classList.toggle('active', alignMode === 'left');
+  document.getElementById('icon-center').classList.toggle('active', alignMode === 'center');
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['url','pdf'][i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  clearErrors();
+}
+
+function clearErrors() {
+  document.querySelectorAll('.error-msg').forEach(e => {
+    e.style.display = 'none'; e.textContent = '';
+  });
+}
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg; el.style.display = 'block';
+}
+function setLoading(msg) {
+  document.getElementById('loading-text').textContent = msg || 'Loading…';
+}
+
+// PDF HANDLING
+async function handlePDF(file) {
+  if (!file) return;
+  pdfFile = file;
+  document.getElementById('pdf-zone').style.display = 'none';
+  document.getElementById('pdf-loaded').style.display = 'flex';
+  document.getElementById('pdf-name').textContent = file.name;
+  document.getElementById('pdf-meta').textContent = `${(file.size/1024/1024).toFixed(2)} MB · Reading…`;
+  try {
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      let lastY = null, line = '';
+      content.items.forEach(item => {
+        if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+          text += line + '\n';
+          line = '';
+        }
+        line += item.str + ' ';
+        lastY = item.transform[5];
+      });
+      text += line + '\n\n';
+    }
+    pdfText = text.trim();
+    document.getElementById('pdf-meta').textContent =
+      `${(file.size/1024/1024).toFixed(2)} MB · ${pdf.numPages} pages · Ready`;
+  } catch(e) {
+    showError('pdf-error', 'Could not read this PDF. Try a text-based PDF (not scanned/image).');
+    removePDF();
+  }
+}
+
+function removePDF() {
+  pdfFile = null; pdfText = '';
+  document.getElementById('pdf-zone').style.display = 'block';
+  document.getElementById('pdf-loaded').style.display = 'none';
+  document.getElementById('pdf-input').value = '';
+}
+
+// drag and drop
+const zone = document.getElementById('pdf-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') handlePDF(f);
+});
+
+// URL FETCHING — 3 strategies
+async function fetchURL(url) {
+  // Strategy 1: Jina Reader — most powerful, handles JS sites & paywalls
+  try {
+    setLoading('Fetching via Jina Reader…');
+    const res = await fetch(`https://r.jina.ai/${url}`, {
+      headers: { 'Accept': 'text/html', 'X-Return-Format': 'html' },
+      signal: AbortSignal.timeout(14000)
+    });
+    if (res.ok) {
+      const html = await res.text();
+      if (html && html.length > 500) return { html, source: url, method: 'jina' };
+    }
+  } catch(e) {}
+
+  // Strategy 2: allorigins proxy
+  try {
+    setLoading('Trying proxy…');
+    const res = await fetch(
+      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    const data = await res.json();
+    if (data.contents && data.contents.length > 500)
+      return { html: data.contents, source: url, method: 'allorigins' };
+  } catch(e) {}
+
+  // Strategy 3: corsproxy.io
+  try {
+    setLoading('Trying alternate proxy…');
+    const res = await fetch(
+      `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    if (res.ok) {
+      const html = await res.text();
+      if (html && html.length > 500) return { html, source: url, method: 'corsproxy' };
+    }
+  } catch(e) {}
+
+  throw new Error(
+    `Could not fetch this URL — the site may be blocking access.<br>
+    <strong>Try:</strong> Copy the article text, switch to "Paste raw text", and paste it there.`
+  );
+}
+
+// HTML PARSING — aggressive content extraction
+function parseHTML(html, sourceUrl) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Fix relative image URLs
+  doc.querySelectorAll('img[src]').forEach(img => {
+    try { img.src = new URL(img.getAttribute('src'), sourceUrl).href; } catch(e) {}
+  });
+
+  // Meta info
+  const ogTitle = doc.querySelector('meta[property="og:title"]')?.content?.trim();
+  const ogDesc  = doc.querySelector('meta[property="og:description"]')?.content?.trim();
+  const metaDesc = doc.querySelector('meta[name="description"]')?.content?.trim();
+  const h1Text  = doc.querySelector('h1')?.textContent?.trim();
+  const titleText = doc.querySelector('title')?.textContent?.trim()?.split('|')[0]?.split('–')[0]?.trim();
+
+  const title = h1Text || ogTitle || titleText || 'Article';
+  const subtitle = ogDesc || metaDesc || '';
+
+  // Strip all noise aggressively
+  [
+    'script','style','noscript','iframe','nav','header','footer',
+    'aside','[role="complementary"]','[role="navigation"]',
+    '.sidebar','.side-bar','.widget','.ad','.ads','.advertisement',
+    '.banner','.promo','.popup','.modal','.overlay',
+    '.cookie','.gdpr','.newsletter','.subscribe','.signup',
+    '.related','.recommended','.more-articles',
+    '.social','.share','.sharing','.social-buttons',
+    '.comments','.comment-section','#comments',
+    '.author-bio','.author-box','.byline-box',
+    '.breadcrumb','.breadcrumbs','.tags','.tag-list',
+    '.pagination','.pager','.nav-links',
+    'figure.wp-block-image + p > em',
+    '[aria-hidden="true"]','.visually-hidden',
+    '.screen-reader-text','.sr-only'
+  ].forEach(sel => {
+    try { doc.querySelectorAll(sel).forEach(el => el.remove()); } catch(e) {}
+  });
+
+  // Find main content — ordered by specificity
+  const candidates = [
+    'article.post', 'article.entry', 'article[class]',
+    'main article', '[role="main"] article',
+    '.post-body', '.post-content', '.post__content',
+    '.article-body', '.article-content', '.article__body',
+    '.entry-content', '.entry__content',
+    '.story-body', '.story__body',
+    '.content-body', '.body-content',
+    '.prose', '.rich-text',
+    'article', 'main',
+    '[role="main"]',
+    '.content', '#content', '#main-content',
+    '.container article'
+  ];
+
+  let container = null;
+  for (const sel of candidates) {
+    try {
+      const el = doc.querySelector(sel);
+      if (el && el.textContent.trim().length > 400) {
+        container = el; break;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: find the div with the most text
+  if (!container) {
+    let best = null, bestLen = 0;
+    doc.querySelectorAll('div, section').forEach(el => {
+      const len = el.textContent.trim().length;
+      const children = el.querySelectorAll('p').length;
+      if (children >= 3 && len > bestLen) {
+        bestLen = len; best = el;
+      }
+    });
+    container = best || doc.body;
+  }
+
+  // Clean up the container — remove remaining noise inside it
+  [
+    '.tags', '.share', '.related', '.comments',
+    'aside', '.sidebar', 'nav', '.newsletter'
+  ].forEach(sel => {
+    try { container.querySelectorAll(sel).forEach(el => el.remove()); } catch(e) {}
+  });
+
+  // Remove duplicate h1 if it matches the page title
+  const firstH1 = container.querySelector('h1');
+  if (firstH1 && firstH1.textContent.trim() === title) {
+    firstH1.remove();
+  }
+
+  return { title, subtitle, html: container.innerHTML };
+}
+
+// TEXT → HTML for PDFs
+function textToHTML(text) {
+  const paras = text.split(/\n{2,}/).filter(p => p.trim().length > 20);
+  return paras.map(p => {
+    const line = p.trim().replace(/\n/g, ' ');
+    const words = line.split(' ').length;
+    // Short lines that don't end with sentence punctuation = headings
+    if (words <= 10 && words >= 2 && !/[.,:;!?]$/.test(line)) {
+      return `<h2>${line}</h2>`;
+    }
+    return `<p>${line}</p>`;
+  }).join('\n');
+}
+
+function wordCount(el) {
+  return (el.textContent || '').trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+function readingTime(words) {
+  const m = Math.ceil(words / 200);
+  return m === 1 ? '1 min read' : `${m} min read`;
+}
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch(e) { return url; }
+}
+
+// MAIN DIGEST
+async function digest() {
+  clearErrors();
+  const btn = document.querySelector('.digest-btn');
+  btn.disabled = true;
+
+  let title = '', bodyHTML = '', subtitle = '', source = '';
+
+  try {
+    if (currentTab === 'url') {
+      const url = document.getElementById('url-input').value.trim();
+      if (!url) {
+        showError('url-error', 'Please enter a URL.');
+        btn.disabled = false; return;
+      }
+      show('loading'); hide('landing');
+      setLoading('Fetching article…');
+      const { html, source: src } = await fetchURL(url);
+      setLoading('Formatting…');
+      const parsed = parseHTML(html, url);
+      title = parsed.title; subtitle = parsed.subtitle;
+      bodyHTML = parsed.html; source = url;
+
+    } else {
+      if (!pdfText) {
+        showError('pdf-error', 'Please upload a PDF first.');
+        btn.disabled = false; return;
+      }
+      show('loading'); hide('landing');
+      setLoading('Formatting PDF…');
+      title = pdfFile?.name?.replace(/\.pdf$/i, '') || 'Document';
+      bodyHTML = textToHTML(pdfText);
+      source = pdfFile?.name || 'PDF';
+    }
+
+    // Render
+    const bodyEl = document.getElementById('art-body');
+    bodyEl.innerHTML = bodyHTML;
+    bodyEl.className = `article-body align-${alignMode}`;
+    const words = wordCount(bodyEl);
+
+    document.getElementById('art-title').textContent = title || 'Article';
+
+    const subEl = document.getElementById('art-subtitle');
+    if (subtitle) { subEl.textContent = subtitle; subEl.style.display = 'block'; }
+    else { subEl.style.display = 'none'; }
+
+    document.getElementById('art-time').textContent = readingTime(words);
+
+    const srcEl = document.getElementById('art-source');
+    if (source.startsWith('http')) {
+      const domain = getDomain(source);
+      srcEl.textContent = domain;
+      srcEl.href = source;
+      document.getElementById('pub-avatar').textContent = domain[0].toUpperCase();
+      document.getElementById('pub-name').textContent = domain;
+      document.getElementById('pub-sub').textContent = 'Via Digest reader';
+      document.getElementById('meta-dot').style.display = 'inline';
+    } else {
+      srcEl.textContent = source;
+      srcEl.removeAttribute('href');
+      document.getElementById('pub-avatar').textContent = 'D';
+      document.getElementById('pub-name').textContent = 'Digest';
+      document.getElementById('pub-sub').textContent = source;
+      document.getElementById('meta-dot').style.display = 'none';
+    }
+
+    document.getElementById('nav-time').textContent = readingTime(words);
+    document.getElementById('align-toggle').style.display = 'flex';
+    document.getElementById('back-arrow').style.display = 'flex';
+
+    hide('loading'); show('article');
+    window.scrollTo(0, 0);
+
+  } catch(err) {
+    hide('loading'); show('landing');
+    if (currentTab === 'url') showError('url-error', err.message);
+    else showError('pdf-error', err.message);
+  }
+
+  btn.disabled = false;
+}
+
+function show(id) {
+  const el = document.getElementById(id);
+  el.style.display = id === 'loading' ? 'flex' : 'block';
+}
+function hide(id) {
+  document.getElementById(id).style.display = 'none'; }
+
+function reset() {
+  hide('article'); hide('loading'); show('landing');
+  document.getElementById('url-input').value = '';
+  removePDF(); clearErrors(); switchTab('url');
+  document.getElementById('nav-time').textContent = '';
+  document.getElementById('align-toggle').style.display = 'none';
+  document.getElementById('back-arrow').style.display = 'none';
+  alignMode = 'left';
+  document.getElementById('icon-left').classList.add('active');
+  document.getElementById('icon-center').classList.remove('active');
+  window.scrollTo(0, 0);
+}
+
+function copyMarkdown() {
+  const title = document.getElementById('art-title').textContent;
+  const body = document.getElementById('art-body');
+  let md = `# ${title}\n\n`;
+  body.querySelectorAll('p,h1,h2,h3,h4,blockquote,li').forEach(el => {
+    const t = el.textContent.trim();
+    if (!t) return;
+    if (el.tagName === 'H1') md += `# ${t}\n\n`;
+    else if (el.tagName === 'H2') md += `## ${t}\n\n`;
+    else if (el.tagName === 'H3') md += `### ${t}\n\n`;
+    else if (el.tagName === 'BLOCKQUOTE') md += `> ${t}\n\n`;
+    else if (el.tagName === 'LI') md += `- ${t}\n`;
+    else md += `${t}\n\n`;
+  });
+  navigator.clipboard.writeText(md).then(() => {
+    ['copy-btn','copy-btn-2'].forEach(id => {
+      const b = document.getElementById(id);
+      const orig = b.innerHTML;
+      b.innerHTML = '✓ Copied!';
+      b.classList.add('active-state');
+      setTimeout(() => { b.innerHTML = orig; b.classList.remove('active-state'); }, 2000);
+    });
+  });
+}
+</script>
+</body>
+</html>
